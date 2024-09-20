@@ -3,6 +3,12 @@
 
 #include <QDialog>
 #include <thread>
+#include <vector>
+#include <QLineEdit>
+#include <QSettings>
+#include <QLayout>
+#include <QPushButton>
+#include <QCoreApplication>
 
 namespace Ui {
 class MakeAct;
@@ -17,9 +23,21 @@ public:
     ~MakeAct();
 
 protected slots:
-    void increment();
+    void add_route_to_table();
+    void remove_route_from_table();
+    void write_routes();
+
+private slots:
+    void inline update_list();
+    void make_report();
 
 private:
+    QDialog *addRouteDialog = new QDialog;
+    QGridLayout *addRouteLayout = new QGridLayout;
+    QLineEdit *route = new QLineEdit;
+    QPushButton *accept = new QPushButton("Принять");
+    QPushButton *reject = new QPushButton("Отмена");
+
     Ui::MakeAct *ui;
 };
 

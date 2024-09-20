@@ -22,7 +22,7 @@ MainMenu::~MainMenu()
 
 void MainMenu::open_make_act()
 {
-    static MakeAct *m = new MakeAct;
+    MakeAct *m = new MakeAct;
     m -> show();
 }
 
