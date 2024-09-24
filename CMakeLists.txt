@@ -26,6 +26,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         makeact.h makeact.cpp makeact.ui
         luninareport.h luninareport.cpp luninareport.ui
         settings.h settings.cpp settings.ui
+        getacts.h getacts.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET dispglonass APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

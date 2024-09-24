@@ -24,3 +24,5 @@ private:
     Ui::MainMenu *ui;
 };
 #endif // MAINMENU_H
+
+//2,2,2,2,2,2,10,10,10,20,23,23,23,214,423

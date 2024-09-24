@@ -1,9 +1,11 @@
 #ifndef MAKEACT_H
 #define MAKEACT_H
 
+#include <QDate>
 #include <QDialog>
 #include <thread>
 #include <vector>
+#include <algorithm>
 #include <QLineEdit>
 #include <QSettings>
 #include <QLayout>
@@ -30,6 +32,7 @@ protected slots:
 private slots:
     void inline update_list();
     void make_report();
+    void get_acts();
 
 private:
     QDialog *addRouteDialog = new QDialog;

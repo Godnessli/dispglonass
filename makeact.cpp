@@ -1,11 +1,14 @@
 #include "makeact.h"
 #include "ui_makeact.h"
+#include "getacts.h"
 
 MakeAct::MakeAct(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::MakeAct)
 {
     ui->setupUi(this);
+
+    GetActs *getacts = new GetActs;
 
     addRouteDialog -> setModal(true);
     addRouteDialog -> setLayout(addRouteLayout);
@@ -32,6 +35,7 @@ MakeAct::MakeAct(QWidget *parent) :
     connect(ui -> addRoute, &QPushButton::clicked, this, &MakeAct::add_route_to_table);
     connect(ui -> removeRoute, &QPushButton::clicked, this, &MakeAct::remove_route_from_table);
     connect(ui -> makeReport, &QPushButton::clicked, this, &MakeAct::make_report);
+    connect(ui -> downloadActs, &QPushButton::clicked, getacts, &GetActs::download_spreadsheet);
 }
 
 MakeAct::~MakeAct()
@@ -84,13 +88,16 @@ void MakeAct::write_routes()
         route -> setText(route -> text().removeFirst());
     }
 
+    for(int i = 0; i < routes.size(); ++i)
+    {
+        routesFile -> setArrayIndex(i);
+        routesFile -> setValue("route", routes[i]);
+    }
+
     for(auto routeNumber : routes)
         ui -> routeList -> addItem(QString::number(routeNumber));
 
     update_list();
-
-    routesFile -> endArray();
-    routesFile -> endGroup();
 
     addRouteDialog -> close();
 
@@ -119,6 +126,8 @@ void inline MakeAct::update_list()
     }
 
     std::sort(routes.begin(), routes.end(), std::less<int>());
+
+    routes.erase(std::unique(routes.begin(), routes.end()), routes.end());
 
     ui -> routeList -> clear();
 
