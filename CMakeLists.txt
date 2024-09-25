@@ -46,6 +46,7 @@ else()
     endif()
 endif()
 
+target_link_libraries(dispglonass PRIVATE ${CMAKE_SOURCE_DIR}/libxlntd.a)
 target_link_libraries(dispglonass PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

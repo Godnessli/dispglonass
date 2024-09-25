@@ -11,13 +11,13 @@ std::string inline GetActs::today_month()
 
     switch (today.month()) {
     case 1:
-        month = "Январь, Февраль, Март";
+        month = "Январь,Февраль,Март";
         break;
     case 2:
-        month = "Январь, Февраль, Март";
+        month = "Январь,Февраль,Март";
         break;
     case 3:
-        month = "Январь, Февраль, Март";
+        month = "Январь,Февраль,Март";
         break;
     case 4:
         month = "Апрель, Май, Июнь";
