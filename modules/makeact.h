@@ -12,6 +12,7 @@
 #include <QLayout>
 #include <QPushButton>
 #include <QCoreApplication>
+#include <boost/python.hpp>
 
 namespace Ui {
 class MakeAct;
@@ -25,14 +26,15 @@ public:
     explicit MakeAct(QWidget *parent = nullptr);
     ~MakeAct();
 
-protected slots:
-    void add_route_to_table();
-    void remove_route_from_table();
-    void write_routes();
+protected:
+    Q_SLOT void add_route_to_table();
+    Q_SLOT void remove_route_from_table();
+    Q_SLOT void write_routes();
 
-private slots:
-    void inline update_list();
-    void make_report();
+private:
+    Q_SLOT void inline update_list();
+    Q_SLOT void make_report();
+    void download_act();
 
 private:
     QDialog *addRouteDialog = new QDialog;

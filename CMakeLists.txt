@@ -9,24 +9,53 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(Boost_COMPILER -mgw11)
+set(Boost_ARCHITECTURE -x64)
+
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+
+set(Boost_DEBUG ON)
+
+if(WIN32)
+    find_package(Xlnt)
+    set(BOOST_ROOT A:/libraries/boost_1_86_0)
+
+    find_package(PythonLibs)
+    find_package(Boost 1.86.0 REQUIRED COMPONENTS python312)
+
+    include_directories(${Boost_INCLUDE_DIRS})
+    include_directories(${PYTHON_INCLUDE_DIRS})
+endif(WIN32)
+
+include_directories(modules)
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
         main.cpp
-        mainmenu.cpp
-        mainmenu.h
-        mainmenu.ui
+        core/mainmenu.cpp
+        core/mainmenu.h
+        core/mainmenu.ui
+        modules/makeact.h
+        modules/makeact.cpp
+        modules/makeact.ui
+        modules/luninareport.h
+        modules/luninareport.cpp
+        modules/luninareport.ui
+        modules/settings.h
+        modules/settings.cpp
+        modules/settings.ui
+        modules/getacts.h
+        modules/getacts.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(dispglonass
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        makeact.h makeact.cpp makeact.ui
-        luninareport.h luninareport.cpp luninareport.ui
-        settings.h settings.cpp settings.ui
-        getacts.h getacts.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET dispglonass APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -46,7 +75,18 @@ else()
     endif()
 endif()
 
-target_link_libraries(dispglonass PRIVATE ${CMAKE_SOURCE_DIR}/libxlntd.a)
+if(WIN32)
+    target_compile_definitions(dispglonass PRIVATE QT_NO_KEYWORDS)
+    target_link_libraries(dispglonass PRIVATE xlnt::xlnt)
+    target_link_libraries(dispglonass PRIVATE
+        ${Boost_LIBRARIES}
+        ${PYTHON_LIBRARIES})
+endif(WIN32)
+
+if(LINUX)
+    target_link_libraries(dispglonass PRIVATE ${CMAKE_SOURCE_DIR}/libxlntd.a)
+endif(LINUX)
+
 target_link_libraries(dispglonass PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

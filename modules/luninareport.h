@@ -15,9 +15,9 @@ public:
     explicit LuninaReport(QWidget *parent = nullptr);
     ~LuninaReport();
 
-private slots:
-    void increment();
-    void decrement();
+private:
+    Q_SLOT void increment();
+    Q_SLOT void decrement();
 
 private:
     Ui::LuninaReport *ui;

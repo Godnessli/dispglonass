@@ -2,6 +2,8 @@
 #define MAINMENU_H
 
 #include <QMainWindow>
+#include <boost/python.hpp>
+#include <iostream>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainMenu; }
@@ -15,10 +17,11 @@ public:
     MainMenu(QWidget *parent = nullptr);
     ~MainMenu();
 
-private slots:
-    void open_make_act();
-    void open_lunina_report();
-    void open_settings();
+private:
+    Q_SLOT void open_make_act();
+    Q_SLOT void open_lunina_report();
+    Q_SLOT void open_settings();
+    void greet_from_python();
 
 private:
     Ui::MainMenu *ui;

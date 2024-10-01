@@ -10,9 +10,6 @@ MakeAct::MakeAct(QWidget *parent) :
     ui->setupUi(this);
 
     GetActs *getacts = new GetActs;
-    xlnt::workbook wb;
-    wb.load("/home/godnessli/Загрузки/27.08.xlsx");
-    qDebug() << QString::fromStdString(wb.active_sheet().cell(1, 1).to_string());
 
     addRouteDialog -> setModal(true);
     addRouteDialog -> setLayout(addRouteLayout);
@@ -39,6 +36,7 @@ MakeAct::MakeAct(QWidget *parent) :
     connect(ui -> addRoute, &QPushButton::clicked, this, &MakeAct::add_route_to_table);
     connect(ui -> removeRoute, &QPushButton::clicked, this, &MakeAct::remove_route_from_table);
     connect(ui -> makeReport, &QPushButton::clicked, this, &MakeAct::make_report);
+    connect(ui -> downloadActs, &QPushButton::clicked, this, &MakeAct::download_act);
 }
 
 MakeAct::~MakeAct()
@@ -147,6 +145,39 @@ void inline MakeAct::update_list()
     routesFile -> endGroup();
 
     delete routesFile;
+}
+
+void MakeAct::download_act()
+{
+    std::string routesIncludes;
+    for(int i = 0; i < ui -> routeList -> count(); ++i)
+    {
+        if(i == ui -> routeList -> count() - 1)
+            routesIncludes += "str(" + ui -> routeList ->item(i) -> text().toStdString() + ")'";
+        else
+            routesIncludes += "str(" + ui -> routeList ->item(i) -> text().toStdString() + ")," + " + ";
+    }
+
+    std::string downloadPyScript = "def uplink():       \n"
+                                   "    #do something   \n"
+                                   "    return 'download acts of routes: " + routesIncludes;
+
+    Py_Initialize();
+
+    try {
+        boost::python::object main = boost::python::import("__main__");
+        boost::python::object global = main.attr("__dict__");
+        boost::python::object function = boost::python::exec(downloadPyScript.c_str(), global, global);
+
+        boost::python::object uplink = global["uplink"];
+
+        std::string result = boost::python::extract<std::string>(uplink());
+
+        std::cout << result << std::endl;
+    } catch (boost::python::error_already_set) {
+        PyErr_Print();
+    }
+    Py_Finalize();
 }
 
 void MakeAct::make_report()
