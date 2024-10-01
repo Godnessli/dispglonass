@@ -50,6 +50,7 @@ set(PROJECT_SOURCES
         modules/settings.ui
         modules/getacts.h
         modules/getacts.cpp
+        python_scripts/hello.py
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
