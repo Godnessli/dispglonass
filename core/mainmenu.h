@@ -21,7 +21,6 @@ private:
     Q_SLOT void open_make_act();
     Q_SLOT void open_lunina_report();
     Q_SLOT void open_settings();
-    void greet_from_python();
 
 private:
     Ui::MainMenu *ui;

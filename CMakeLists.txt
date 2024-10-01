@@ -27,6 +27,7 @@ if(WIN32)
 
     include_directories(${Boost_INCLUDE_DIRS})
     include_directories(${PYTHON_INCLUDE_DIRS})
+    include_directories("A:/libraries/utf8/source")
 endif(WIN32)
 
 include_directories(modules)
@@ -50,7 +51,9 @@ set(PROJECT_SOURCES
         modules/settings.ui
         modules/getacts.h
         modules/getacts.cpp
-        python_scripts/hello.py
+        python_scripts/excel_reader.py
+        python_scripts/google_api_user.py
+        python_scripts/main.py
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

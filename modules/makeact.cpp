@@ -2,6 +2,7 @@
 #include "ui_makeact.h"
 #include "getacts.h"
 #include <xlnt/xlnt.hpp>
+#include "utf8.h"
 
 MakeAct::MakeAct(QWidget *parent) :
     QDialog(parent),
@@ -149,35 +150,35 @@ void inline MakeAct::update_list()
 
 void MakeAct::download_act()
 {
-    std::string routesIncludes;
-    for(int i = 0; i < ui -> routeList -> count(); ++i)
-    {
-        if(i == ui -> routeList -> count() - 1)
-            routesIncludes += "str(" + ui -> routeList ->item(i) -> text().toStdString() + ")'";
-        else
-            routesIncludes += "str(" + ui -> routeList ->item(i) -> text().toStdString() + ")," + " + ";
-    }
-
-    std::string downloadPyScript = "def uplink():       \n"
-                                   "    #do something   \n"
-                                   "    return 'download acts of routes: " + routesIncludes;
+    std::string py_filename = "main.py";
+    std::string py_get_org_reports = "download";
 
     Py_Initialize();
 
     try {
         boost::python::object main = boost::python::import("__main__");
-        boost::python::object global = main.attr("__dict__");
-        boost::python::object function = boost::python::exec(downloadPyScript.c_str(), global, global);
+        boost::python::object name_space = main.attr("__dict__");
+        boost::python::exec_file(py_filename.c_str(), name_space, name_space);
 
-        boost::python::object uplink = global["uplink"];
+        boost::python::object py_function = name_space[py_get_org_reports.c_str()];
+        boost::python::object result = py_function();
 
-        std::string result = boost::python::extract<std::string>(uplink());
+        std::string res = boost::python::extract<std::string>(result());
+        std::cout << res << std::endl;
 
-        std::cout << result << std::endl;
     } catch (boost::python::error_already_set) {
         PyErr_Print();
     }
-    Py_Finalize();
+}
+
+inline void MakeAct::decode_utf8(const std::string& bytes, std::wstring& wstr)
+{
+    utf8::utf8to32(bytes.begin(), bytes.end(), std::back_inserter(wstr));
+}
+
+inline void MakeAct::encode_utf8(const std::wstring& wstr, std::string& bytes)
+{
+    utf8::utf32to8(wstr.begin(), wstr.end(), std::back_inserter(bytes));
 }
 
 void MakeAct::make_report()
