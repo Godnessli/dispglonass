@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(dispglonass VERSION 0.1 LANGUAGES CXX)
+#set(Boost_NO_WARN_NEW_VERSIONS 1)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -9,31 +10,31 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(Boost_COMPILER -mgw11)
-set(Boost_ARCHITECTURE -x64)
-
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
-set(Boost_DEBUG ON)
-
 if(WIN32)
-    find_package(Xlnt)
+    set(Boost_COMPILER -mgw11)
+    set(Boost_ARCHITECTURE -x64)
     set(BOOST_ROOT A:/libraries/boost_1_86_0)
 
-    find_package(PythonLibs)
     find_package(Boost 1.86.0 REQUIRED COMPONENTS python312)
-
-    include_directories(${Boost_INCLUDE_DIRS})
-    include_directories(${PYTHON_INCLUDE_DIRS})
-    include_directories("A:/libraries/utf8/source")
 endif(WIN32)
+if(LINUX)
+    set(BOOST_ROOT /home/godnessli/Загрузки/boost_1_86_0)
+    find_package(Boost 1.86.0 REQUIRED COMPONENTS python36-3)
+endif()
 
 include_directories(modules)
 
+find_package(PythonLibs REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${PYTHON_INCLUDE_DIRS})
+
+find_package(Xlnt)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -80,18 +81,18 @@ else()
 endif()
 
 if(WIN32)
-    target_compile_definitions(dispglonass PRIVATE QT_NO_KEYWORDS)
     target_link_libraries(dispglonass PRIVATE xlnt::xlnt)
-    target_link_libraries(dispglonass PRIVATE
-        ${Boost_LIBRARIES}
-        ${PYTHON_LIBRARIES})
 endif(WIN32)
 
 if(LINUX)
-    target_link_libraries(dispglonass PRIVATE ${CMAKE_SOURCE_DIR}/libxlntd.a)
+    target_link_libraries(dispglonass PRIVATE xlnt::xlnt)
 endif(LINUX)
 
+target_compile_definitions(dispglonass PRIVATE QT_NO_KEYWORDS)
 target_link_libraries(dispglonass PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(dispglonass PRIVATE
+    ${Boost_LIBRARIES}
+    ${PYTHON_LIBRARIES})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

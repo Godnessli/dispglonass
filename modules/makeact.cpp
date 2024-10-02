@@ -2,7 +2,6 @@
 #include "ui_makeact.h"
 #include "getacts.h"
 #include <xlnt/xlnt.hpp>
-#include "utf8.h"
 
 MakeAct::MakeAct(QWidget *parent) :
     QDialog(parent),
@@ -150,7 +149,8 @@ void inline MakeAct::update_list()
 
 void MakeAct::download_act()
 {
-    std::string py_filename = "main.py";
+    setenv("python")
+    std::string py_filename = "python_scripts/main.py";
     std::string py_get_org_reports = "download";
 
     Py_Initialize();
@@ -169,16 +169,6 @@ void MakeAct::download_act()
     } catch (boost::python::error_already_set) {
         PyErr_Print();
     }
-}
-
-inline void MakeAct::decode_utf8(const std::string& bytes, std::wstring& wstr)
-{
-    utf8::utf8to32(bytes.begin(), bytes.end(), std::back_inserter(wstr));
-}
-
-inline void MakeAct::encode_utf8(const std::wstring& wstr, std::string& bytes)
-{
-    utf8::utf32to8(wstr.begin(), wstr.end(), std::back_inserter(bytes));
 }
 
 void MakeAct::make_report()

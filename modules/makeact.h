@@ -30,9 +30,6 @@ protected:
     Q_SLOT void add_route_to_table();
     Q_SLOT void remove_route_from_table();
     Q_SLOT void write_routes();
-    inline void decode_utf8(const std::string& bytes, std::wstring& wstr);
-    inline void encode_utf8(const std::wstring& wstr, std::string& bytes);
-
 private:
     Q_SLOT void inline update_list();
     Q_SLOT void make_report();
