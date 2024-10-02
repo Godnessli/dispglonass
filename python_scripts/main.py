@@ -5,32 +5,40 @@ from excel_reader import ExcelReader
 from time import time
 
 
-async def get_org_reports(lst_routes: list, period: str):
-    """ Асинхронно получает список отчётов организатора и записывает в файл 'data.json'
+class ReportReader:
 
-        Аргументы:
-            lst_routes(list): список номер маршрутов по договору,
-            period(str): нужный период форамата <Месяц> <Последние две цифры года>
+    @staticmethod
+    async def get_org_reports(lst_routes: list, period: str):
+        """ Асинхронно получает список отчётов организатора и записывает в файл 'data.json'
 
-    """
-    id_sheets, data = ExcelReader('routes.xlsx').get_data(), dict()
-    api_user = GoogleSheetsApiUser()
-    tasks = [api_user.get_values(id_sheets[route_numb], period) for route_numb in lst_routes]
-    lst_reports = await asyncio.gather(*tasks)
+            Аргументы:
+                lst_routes(list): список номер маршрутов по договору,
+                period(str): нужный период форамата <Месяц> <Последние две цифры года>
 
-    for i, report in enumerate(lst_reports):
-        route_numb = lst_routes[i]
-        data[route_numb] = report['values']
+        """
+        id_sheets, data = ExcelReader('routes.xlsx').get_data(), dict()
+        api_user = GoogleSheetsApiUser()
+        tasks = [api_user.get_values(id_sheets[route_numb], period) for route_numb in lst_routes]
+        lst_reports = await asyncio.gather(*tasks)
 
-    with open('data.json', 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+        for i, report in enumerate(lst_reports):
+            route_numb = lst_routes[i]
+            data[route_numb] = report['values']
+
+        with open('data.json', 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+    @classmethod
+    def run(cls):
+        start = time()
+        asyncio.run(cls.get_org_reports([271, 30, 4, 5, 176, 119, 371, 246,
+                                     394, 392, 383, 58, 43, 66, 117, 239,
+                                     380, 384, 487, 540, 247, 163, 23, 52, 247, 18, 164, 188, '343Э', 358], 'Июнь 24'))
+
+        print(f'Акты скачаны за {round(time() - start, 1)} сек')
 
 
-if __name__ == '__main__':
-    start = time()
-    asyncio.run(get_org_reports([271, 30, 4, 5, 176, 119, 371, 246,
-                                 394, 392, 383, 58, 43, 66, 117, 239,
-                                 380, 384, 487, 540, 247, 163, 23, 52, 247, 18, 164, 188, '343Э', 358], 'Июнь 24'))
 
-    print(f'Акты скачаны за {round(time() - start, 1)} сек')
+
+
 
