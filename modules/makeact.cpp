@@ -146,25 +146,32 @@ void inline MakeAct::update_list()
 
     delete routesFile;
 }
+/*import asyncio
+    from google_api_user import GoogleSheetsApiUser
+    import json
+    from excel_reader import ExcelReader
+    from time import time*/
 
 void MakeAct::download_act()
 {
-    setenv("python")
-    std::string py_filename = "python_scripts/main.py";
-    std::string py_get_org_reports = "download";
-
     Py_Initialize();
 
     try {
-        boost::python::object main = boost::python::import("__main__");
-        boost::python::object name_space = main.attr("__dict__");
-        boost::python::exec_file(py_filename.c_str(), name_space, name_space);
+        boost::python::object main          = boost::python::import("__main__");
+        boost::python::object globals       = main.attr("__dict__");
 
-        boost::python::object py_function = name_space[py_get_org_reports.c_str()];
-        boost::python::object result = py_function();
+        boost::python::object reportReader  = boost::python::exec("import sys\n"
+                                                                 "sys.path.insert(1, 'A:/projects/dispglonass/python_scripts')\n"
+                                                                 "sys.path.insert(1, 'A:/usr/Python312/Lib/site-packages')\n"
+                                                                 "import main\n"
+                                                                 "obj = main.ReportReader()\n"
+                                                                 "def run():\n"
+                                                                 "  return obj.run()", globals, globals);
+        boost::python::object run           = reportReader["run"];
 
-        std::string res = boost::python::extract<std::string>(result());
-        std::cout << res << std::endl;
+        std::string message                 = boost::python::extract<std::string>(run());
+
+        std::cout << message << std::endl;
 
     } catch (boost::python::error_already_set) {
         PyErr_Print();
