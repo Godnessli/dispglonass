@@ -3,6 +3,10 @@
 
 #include <vector>
 #include <QDate>
+#include <vector>
+#include <iostream>
+#include <thread>
+#include <boost/python.hpp>
 
 class GetActs
 {
@@ -11,8 +15,9 @@ public:
     ~GetActs();
 
     std::string inline today_month();
-    std::string name_of_spreadsheet(const std::string, const int);
-    void download_spreadsheet();
+    std::string name_of_spreadsheet(const std::string);
+    void download_spreadsheet(const std::vector<std::string> *arrayOfRoutes);
+
 };
 
 #endif // GETACTS_H

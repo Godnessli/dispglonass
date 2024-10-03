@@ -36,6 +36,7 @@ MakeAct::MakeAct(QWidget *parent) :
     connect(ui -> removeRoute, &QPushButton::clicked, this, &MakeAct::remove_route_from_table);
     connect(ui -> makeReport, &QPushButton::clicked, this, &MakeAct::make_report);
     connect(ui -> downloadActs, &QPushButton::clicked, this, &MakeAct::download_act);
+    connect(ui -> exit, &QPushButton::clicked, this, &MakeAct::exit);
 }
 
 MakeAct::~MakeAct()
@@ -148,48 +149,31 @@ void inline MakeAct::update_list()
 
 void MakeAct::download_act()
 {
-    std::string run_script = "import sys\n"
-                             "import codecs\n\n"
-
-                             "sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())\n"
-                             "sys.path.insert(1, 'A:/projects/dispglonass/python_scripts')\n"
-                             "sys.path.insert(1, 'A:/usr/Python312/Lib/site-packages')\n"
-                             "import main\n"
-                             "obj = main.ReportReader\n"
-                             "def run():\n"
-                             "  return obj.run([";
-
-    std::string routes;
+    std::vector<std::string> *routes_vector = new std::vector<std::string>;
 
     for(int i = 0; i < ui -> routeList -> count(); ++i)
     {
-        if(i == ui -> routeList -> count() - 1)
-            routes += ui -> routeList -> item(i) -> text().toStdString();
-        else
-            routes += ui -> routeList -> item(i) -> text().toStdString() + ", ";
+        routes_vector -> push_back(ui -> routeList -> item(i) -> text().toStdString());
     }
 
-    run_script += routes + "])";
+    GetActs *ga = new GetActs;
 
-    Py_Initialize();
+    ga -> download_spreadsheet(routes_vector);
 
-    try {
-        boost::python::object main          = boost::python::import("__main__");
-        boost::python::object globals       = main.attr("__dict__");
-
-        boost::python::object reportReader  = boost::python::exec(run_script.c_str(), globals, globals);
-        boost::python::object run           = globals["run"];
-
-        std::string message                 = boost::python::extract<std::string>(run());
-
-        std::cout << message << std::endl;
-
-    } catch (boost::python::error_already_set) {
-        PyErr_Print();
-    }
+    delete ga;
+    ga = nullptr;
 }
 
 void MakeAct::make_report()
+{
+    std::ifstream routes_data("A:/Projects/dispglonass/python_scripts/data.json", std::ifstream::binary);
+    Json::Value route;
+    routes_data >> route;
+
+    std::cout << route["34"];
+}
+
+void MakeAct::exit()
 {
     MakeAct::~MakeAct();
 }

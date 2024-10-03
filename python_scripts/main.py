@@ -3,11 +3,6 @@ from google_api_user import GoogleSheetsApiUser
 import json
 from excel_reader import ExcelReader
 from time import time
-import sys
-import codecs
-
-sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
-
 
 class ReportReader:
 
@@ -33,11 +28,11 @@ class ReportReader:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     @classmethod
-    def run(cls, routes):
+    def run(cls, routes, month):
         start = time()
-        asyncio.run(cls.get_org_reports(routes, 'Июнь 24'))
+        asyncio.run(cls.get_org_reports(routes, month))
 
-        return (f'Акты скачаны за {round(time() - start, 1)} сек')
+        return round(time() - start, 1)
 
 
 

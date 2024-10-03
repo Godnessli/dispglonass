@@ -3,7 +3,7 @@
 
 #include <QDate>
 #include <QDialog>
-#include <thread>
+#include <chrono>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -13,7 +13,10 @@
 #include <QLayout>
 #include <QPushButton>
 #include <QCoreApplication>
-#include <boost/python.hpp>
+#include <boost/json.hpp>
+#include <json/json.h>
+#include <boost/property_tree/json_parser.hpp>
+#include "xlnt/xlnt.hpp"
 
 namespace Ui {
 class MakeAct;
@@ -37,6 +40,8 @@ private:
     void download_act();
 
 private:
+    Q_SLOT void exit();
+
     QDialog *addRouteDialog = new QDialog;
     QGridLayout *addRouteLayout = new QGridLayout;
     QLineEdit *route = new QLineEdit;

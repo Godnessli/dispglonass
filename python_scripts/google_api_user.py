@@ -18,7 +18,7 @@ class GoogleSheetsApiUser:
         """ Получет API токен."""
 
         creds = None
-        if os.path.exists('token.json'):
+        if os.path.exists('A:/Projects/dispglonass/python_scripts/token.json'):
             creds = Credentials.from_authorized_user_file('A:/Projects/dispglonass/python_scripts/token.json', self.SCOPES)
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:

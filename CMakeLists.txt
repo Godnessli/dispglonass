@@ -18,7 +18,7 @@ if(WIN32)
     set(Boost_COMPILER -mgw11)
     set(Boost_ARCHITECTURE -x64)
     set(BOOST_ROOT A:/libraries/boost_1_86_0)
-
+    list(APPEND CMAKE_PREFIX_PATH "A:/usr/local")
     find_package(Boost 1.86.0 REQUIRED COMPONENTS python312)
 endif(WIN32)
 if(LINUX)
@@ -81,7 +81,7 @@ else()
 endif()
 
 if(WIN32)
-    #target_link_libraries(dispglonass PRIVATE xlnt::xlnt)
+    target_link_libraries(dispglonass PRIVATE xlnt::xlnt)
 endif(WIN32)
 
 if(LINUX)
