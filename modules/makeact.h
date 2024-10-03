@@ -4,6 +4,7 @@
 #include <QDate>
 #include <QDialog>
 #include <thread>
+#include <iostream>
 #include <vector>
 #include <algorithm>
 #include <QDebug>

@@ -1,7 +1,6 @@
 #include "makeact.h"
 #include "ui_makeact.h"
 #include "getacts.h"
-#include <xlnt/xlnt.hpp>
 
 MakeAct::MakeAct(QWidget *parent) :
     QDialog(parent),
@@ -146,28 +145,40 @@ void inline MakeAct::update_list()
 
     delete routesFile;
 }
-/*import asyncio
-    from google_api_user import GoogleSheetsApiUser
-    import json
-    from excel_reader import ExcelReader
-    from time import time*/
 
 void MakeAct::download_act()
 {
+    std::string run_script = "import sys\n"
+                             "import codecs\n\n"
+
+                             "sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())\n"
+                             "sys.path.insert(1, 'A:/projects/dispglonass/python_scripts')\n"
+                             "sys.path.insert(1, 'A:/usr/Python312/Lib/site-packages')\n"
+                             "import main\n"
+                             "obj = main.ReportReader\n"
+                             "def run():\n"
+                             "  return obj.run([";
+
+    std::string routes;
+
+    for(int i = 0; i < ui -> routeList -> count(); ++i)
+    {
+        if(i == ui -> routeList -> count() - 1)
+            routes += ui -> routeList -> item(i) -> text().toStdString();
+        else
+            routes += ui -> routeList -> item(i) -> text().toStdString() + ", ";
+    }
+
+    run_script += routes + "])";
+
     Py_Initialize();
 
     try {
         boost::python::object main          = boost::python::import("__main__");
         boost::python::object globals       = main.attr("__dict__");
 
-        boost::python::object reportReader  = boost::python::exec("import sys\n"
-                                                                 "sys.path.insert(1, 'A:/projects/dispglonass/python_scripts')\n"
-                                                                 "sys.path.insert(1, 'A:/usr/Python312/Lib/site-packages')\n"
-                                                                 "import main\n"
-                                                                 "obj = main.ReportReader()\n"
-                                                                 "def run():\n"
-                                                                 "  return obj.run()", globals, globals);
-        boost::python::object run           = reportReader["run"];
+        boost::python::object reportReader  = boost::python::exec(run_script.c_str(), globals, globals);
+        boost::python::object run           = globals["run"];
 
         std::string message                 = boost::python::extract<std::string>(run());
 

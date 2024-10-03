@@ -81,7 +81,7 @@ else()
 endif()
 
 if(WIN32)
-    target_link_libraries(dispglonass PRIVATE xlnt::xlnt)
+    #target_link_libraries(dispglonass PRIVATE xlnt::xlnt)
 endif(WIN32)
 
 if(LINUX)
