@@ -1,4 +1,4 @@
-#include "makeact.h"
+﻿#include "makeact.h"
 #include "ui_makeact.h"
 #include "getacts.h"
 
@@ -34,7 +34,7 @@ MakeAct::MakeAct(QWidget *parent) :
 
     connect(ui -> addRoute, &QPushButton::clicked, this, &MakeAct::add_route_to_table);
     connect(ui -> removeRoute, &QPushButton::clicked, this, &MakeAct::remove_route_from_table);
-    connect(ui -> makeReport, &QPushButton::clicked, this, &MakeAct::make_report);
+    connect(ui -> makeReport, &QPushButton::clicked, this, &MakeAct::start_make_report);
     connect(ui -> downloadActs, &QPushButton::clicked, this, &MakeAct::download_act);
     connect(ui -> exit, &QPushButton::clicked, this, &MakeAct::exit);
 }
@@ -164,13 +164,134 @@ void MakeAct::download_act()
     ga = nullptr;
 }
 
-void MakeAct::make_report()
+boost::json::value read_json(std::istream& is, boost::system::error_code& ec)
 {
-    std::ifstream routes_data("A:/Projects/dispglonass/python_scripts/data.json", std::ifstream::binary);
-    Json::Value route;
-    routes_data >> route;
+    boost::json::stream_parser p;
+    std::string line;
 
-    std::cout << route["34"];
+    while(std::getline(is, line))
+    {
+        p.write(line, ec);
+        if(ec)
+            return nullptr;
+    }
+
+    p.finish(ec);
+    if(ec)
+        return nullptr;
+    return p.release();
+}
+
+void MakeAct::start_make_report()
+{
+    for(int i = 0; i < ui -> routeList -> count(); ++i)
+    {
+        make_route_report(ui -> routeList -> item(i) -> text().toStdString());
+
+    }
+}
+
+std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::string& route)
+{
+    std::ifstream inputJson("A:/Projects/dispglonass/python_scripts/data.json");
+    boost::json::value routesDataJson;
+    std::vector<std::vector<std::string>> reportTableModel;
+
+    if(!inputJson.is_open())
+        std::cerr << "Error openning the file!" << std::endl;
+    else
+    {
+        inputJson >> routesDataJson;
+        int planRacesPerDay, factRacesPerDay;
+        QDate dateOfRaces = QDate(2024, 06, 1);
+        for(int i = 3; i < routesDataJson.as_object()[route].as_array().size(); ++i)
+        {
+            if(routesDataJson.as_object()[route].as_array()[i].as_array().size() > 0)
+            {
+                if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
+                {
+                    qDebug() << i;
+                    std::vector<std::string> dayReport;
+                    try {
+                        planRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[1].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[4].as_string().c_str());
+                        factRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[2].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[5].as_string().c_str());
+
+                        dayReport.push_back(dateOfRaces.toString("dd.MM.yyyy").toStdString());
+                        dayReport.push_back(std::to_string(planRacesPerDay));
+                        dayReport.push_back(std::to_string(factRacesPerDay));
+
+                        int exploitationsReason = 0;
+                        int technicalReason = 0;
+                        int accidentReason = 0;
+                        int deviationReason = 0;
+                        int otherReason = 0;
+
+                        while(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
+                        {
+                            if(planRacesPerDay == factRacesPerDay)
+                                break;
+                            else
+                            {
+                                if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("Э"))
+                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                        exploitationsReason++;
+                                    else
+                                        exploitationsReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("Т"))
+                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                        technicalReason++;
+                                    else
+                                        technicalReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("ДТП"))
+                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                        accidentReason++;
+                                    else
+                                        accidentReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[14].as_string().c_str()) == QString("Несоблюдение времени начала/окончания движения"))
+                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                        deviationReason++;
+                                    else
+                                        deviationReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                else
+                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                        otherReason++;
+                                    else
+                                        otherReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+
+                                ++i;
+
+                                if(routesDataJson.as_object()[route].as_array()[i].as_array().size() < 4)
+                                    break;
+                            }
+                        }
+
+                        --i;
+
+                        dayReport.push_back(std::to_string(exploitationsReason));
+                        dayReport.push_back(std::to_string(technicalReason));
+                        dayReport.push_back(std::to_string(accidentReason));
+                        dayReport.push_back(std::to_string(deviationReason));
+                        dayReport.push_back(std::to_string(otherReason));
+
+                    } catch(std::exception) {
+                        dayReport.push_back("-");
+                        dayReport.push_back("-");
+                        dayReport.push_back("-");
+                        dayReport.push_back("-");
+                        dayReport.push_back("-");
+                        dayReport.push_back("-");
+                        dayReport.push_back("-");
+                        dayReport.push_back("-");
+                    }
+
+                    reportTableModel.push_back(dayReport);
+                    dateOfRaces = dateOfRaces.addDays(1);
+                }
+            }
+        }
+    }
+
+    return reportTableModel;
 }
 
 void MakeAct::exit()

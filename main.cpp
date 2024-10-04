@@ -1,4 +1,5 @@
 #include "core/mainmenu.h"
+#include <locale.h>
 
 #include <QApplication>
 

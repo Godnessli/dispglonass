@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+﻿cmake_minimum_required(VERSION 3.5)
 
 project(dispglonass VERSION 0.1 LANGUAGES CXX)
 #set(Boost_NO_WARN_NEW_VERSIONS 1)
@@ -19,7 +19,7 @@ if(WIN32)
     set(Boost_ARCHITECTURE -x64)
     set(BOOST_ROOT A:/libraries/boost_1_86_0)
     list(APPEND CMAKE_PREFIX_PATH "A:/usr/local")
-    find_package(Boost 1.86.0 REQUIRED COMPONENTS python312)
+    find_package(Boost 1.86.0 REQUIRED COMPONENTS python312 json)
 endif(WIN32)
 if(LINUX)
     set(BOOST_ROOT /home/godnessli/Загрузки/boost_1_86_0)
@@ -27,6 +27,7 @@ if(LINUX)
 endif()
 
 include_directories(modules)
+add_definitions(-DUNICODE -D_UNICODE)
 
 find_package(PythonLibs REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -52,13 +53,16 @@ set(PROJECT_SOURCES
         modules/settings.ui
         modules/getacts.h
         modules/getacts.cpp
+        modules/buildreporttable.h
+        modules/buildreporttable.cpp
         python_scripts/excel_reader.py
         python_scripts/google_api_user.py
         python_scripts/main.py
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(dispglonass
+
+qt_add_executable(dispglonass
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )

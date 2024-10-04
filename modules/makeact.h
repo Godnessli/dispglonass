@@ -1,4 +1,4 @@
-#ifndef MAKEACT_H
+﻿#ifndef MAKEACT_H
 #define MAKEACT_H
 
 #include <QDate>
@@ -12,10 +12,11 @@
 #include <QSettings>
 #include <QLayout>
 #include <QPushButton>
+#include <QMessageBox>
 #include <QCoreApplication>
 #include <boost/json.hpp>
-#include <json/json.h>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include "xlnt/xlnt.hpp"
 
 namespace Ui {
@@ -36,7 +37,9 @@ protected:
     Q_SLOT void write_routes();
 private:
     Q_SLOT void inline update_list();
-    Q_SLOT void make_report();
+    Q_SLOT void start_make_report();
+
+    std::vector<std::vector<std::string>> make_route_report(const std::string&);
     void download_act();
 
 private:
