@@ -1,6 +1,7 @@
 ﻿#include "makeact.h"
 #include "ui_makeact.h"
 #include "getacts.h"
+#include "buildreporttable.h"
 
 MakeAct::MakeAct(QWidget *parent) :
     QDialog(parent),
@@ -184,11 +185,18 @@ boost::json::value read_json(std::istream& is, boost::system::error_code& ec)
 
 void MakeAct::start_make_report()
 {
+    std::vector<std::vector<std::vector<std::string>>> tableData;
+    std::string routes[ui -> routeList -> count()];
     for(int i = 0; i < ui -> routeList -> count(); ++i)
     {
-        make_route_report(ui -> routeList -> item(i) -> text().toStdString());
-
+        tableData.push_back(make_route_report(ui -> routeList -> item(i) -> text().toStdString()));
+        routes[i] = ui -> routeList -> item(i) -> text().toStdString();
     }
+
+
+    BuildReportTable *brt = new BuildReportTable(tableData, routes);
+    delete brt;
+    brt = nullptr;
 }
 
 std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::string& route)
@@ -210,7 +218,6 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
             {
                 if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
                 {
-                    qDebug() << i;
                     std::vector<std::string> dayReport;
                     try {
                         planRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[1].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[4].as_string().c_str());

@@ -1,4 +1,4 @@
-#include "getacts.h"
+﻿#include "getacts.h"
 
 GetActs::GetActs()
 {
