@@ -3,7 +3,6 @@
 BuildReportTable::BuildReportTable(const std::vector<std::vector<std::vector<std::string>>>& routesData, const std::string routes_names[])
 {
     xlnt::workbook inputWorkBook;
-
     xlnt::worksheet inputWorkSheet = inputWorkBook.active_sheet();
     inputWorkSheet.title("Акты по Маршрутам");
 
@@ -17,15 +16,18 @@ BuildReportTable::BuildReportTable(const std::vector<std::vector<std::vector<std
     inputWorkSheet.cell(xlnt::cell_reference(6, 1)).value("Срывы Тех.");
     inputWorkSheet.cell(xlnt::cell_reference(7, 1)).value("ДТП");
     inputWorkSheet.cell(xlnt::cell_reference(8, 1)).value("Отклонения");
-    inputWorkSheet.cell(xlnt::cell_reference(9, 1)).value("Другие срывы");
+    inputWorkSheet.cell(xlnt::cell_reference(9, 1)).value("Несоблюдение времени");
+    inputWorkSheet.cell(xlnt::cell_reference(10, 1)).value("БО");
+    inputWorkSheet.cell(xlnt::cell_reference(11, 1)).value("Другие срывы");
 
     for(int route = 0; route < routesData.size(); ++route)
     {
         for(int row = (count_rows * route + 2); row <= (count_rows * (route + 1) + 1); ++row)
         {
-            std::cout << row << std::endl;
+
             for(int col = 1; col <= routesData[route][0].size(); ++col)
             {
+                qDebug() << "row/col in table xlsx " << row << col;
                 inputWorkSheet.cell(xlnt::cell_reference(col, row)).value(routesData[route][row - (count_rows * route + 2)][col - 1]);
                 inputWorkSheet.cell(col, row).alignment(xlnt::alignment().horizontal(xlnt::horizontal_alignment::center));
             }

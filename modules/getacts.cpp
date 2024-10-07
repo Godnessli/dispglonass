@@ -66,14 +66,15 @@ void GetActs::download_spreadsheet(const std::vector<std::string> *arrayOfRoutes
 {
     std::string run_script = "import sys\n";
 
-#ifdef __MINGW32__
-    run_script +=   "sys.path.insert(1, 'A:/projects/dispglonass/python_scripts')\n"
-                    "sys.path.insert(1, 'A:/usr/Python312/Lib/site-packages')\n";
-#endif
-#ifdef __linux__
-    run_script +=   "sys.path.insert(1, '/home/godnessli/projects/dispglonass/python_scripts')\n"
-                    "sys.path.insert(1, '/home/godnessli/.local/lib/python3.12/site-packages')\n";
-#endif
+    #ifdef __MINGW32__
+        run_script +=   "sys.path.insert(1, 'A:/projects/dispglonass/python_scripts')\n"
+                        "sys.path.insert(1, 'A:/usr/Python312/Lib/site-packages')\n";
+    #endif
+
+    #ifdef __linux__
+        run_script +=   "sys.path.insert(1, '/home/godnessli/projects/dispglonass/python_scripts')\n"
+                        "sys.path.insert(1, '/home/godnessli/.local/lib/python3.12/site-packages')\n";
+    #endif
 
     run_script +=   "import main\n"
                     "obj = main.ReportReader\n"
@@ -85,12 +86,45 @@ void GetActs::download_spreadsheet(const std::vector<std::string> *arrayOfRoutes
     for(int i = 0; i < arrayOfRoutes -> size(); ++i)
     {
         if(i == arrayOfRoutes -> size() - 1)
-            routes += "'" + arrayOfRoutes -> at(i) + "'";
+        {
+            bool digit = true;
+            for(int j = 0; j < arrayOfRoutes -> at(i).size(); ++j)
+            {
+                if(!std::isdigit(arrayOfRoutes -> at(i)[j]))
+                {
+                    digit = false;
+                    break;
+                }
+            }
+
+            if(digit)
+                routes += arrayOfRoutes -> at(i);
+            else
+                routes += "'" + arrayOfRoutes -> at(i) + "'";
+        }
         else
-            routes += "'" + arrayOfRoutes -> at(i) + "'" + ", ";
+        {
+            bool digit = true;
+            qDebug() << arrayOfRoutes -> at(i).size();
+            for(int j = 0; j < arrayOfRoutes -> at(i).size(); ++j)
+            {
+                if(!std::isdigit(arrayOfRoutes -> at(i)[j]))
+                {
+                    digit = false;
+                    break;
+                }
+            }
+
+            if(digit)
+                routes += arrayOfRoutes -> at(i) + ",";
+            else
+                routes += "'" + arrayOfRoutes -> at(i) + "'" + ",";
+        }
     }
 
     run_script += routes + "], '" + name_of_spreadsheet(today_month()) + "')";
+
+    qDebug() << QString::fromStdString(run_script);
 
     Py_Initialize();
 
