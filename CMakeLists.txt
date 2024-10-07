@@ -23,7 +23,7 @@ if(WIN32)
 endif(WIN32)
 if(LINUX)
     set(BOOST_ROOT /home/godnessli/Загрузки/boost_1_86_0)
-    find_package(Boost 1.86.0 REQUIRED COMPONENTS python36-3)
+    find_package(Boost 1.86.0 REQUIRED COMPONENTS python312 json)
 endif()
 
 include_directories(modules)

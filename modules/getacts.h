@@ -7,6 +7,7 @@
 #include <iostream>
 #include <thread>
 #include <boost/python.hpp>
+#include <QMessageBox>
 
 class GetActs
 {

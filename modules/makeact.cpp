@@ -25,7 +25,7 @@ MakeAct::MakeAct(QWidget *parent) :
     for(int i = 0; i < size; ++i)
     {
         routesFile -> setArrayIndex(i);
-        ui -> routeList -> addItem(QString::number(routesFile -> value("route").toInt()));
+        ui -> routeList -> addItem(routesFile -> value("route").toString());
     }
 
     routesFile -> endArray();
@@ -68,36 +68,23 @@ void MakeAct::write_routes()
     routesFile -> beginGroup("Routes");
     routesFile -> beginWriteArray("GovernmentContract");
 
-    std::vector<int> routes;
+    std::vector<std::string> routes;
     std::string routeNumber;
 
-    for(auto symbol : route -> text().toStdString())
-    {
-        if(symbol == ',')
-        {
-            routes.push_back(std::stoi(routeNumber));
-            routeNumber = "";
-        }
-        else if(route -> text().toStdString().size() == 1 && symbol != ',')
-        {
-            routeNumber += symbol;
-            routes.push_back(std::stoi(routeNumber));
-            routeNumber = "";
-        }
-        else
-            routeNumber += symbol;
+    std::stringstream ss(route -> text().toStdString());
 
-        route -> setText(route -> text().removeFirst());
+    while(getline(ss, routeNumber, ',')) {
+        routes.push_back(routeNumber);
     }
 
     for(int i = 0; i < routes.size(); ++i)
     {
         routesFile -> setArrayIndex(i);
-        routesFile -> setValue("route", routes[i]);
+        routesFile -> setValue("route", QString::fromStdString(routes[i]));
     }
 
     for(auto routeNumber : routes)
-        ui -> routeList -> addItem(QString::number(routeNumber));
+        ui -> routeList -> addItem(QString::fromStdString(routeNumber));
 
     update_list();
 
@@ -120,21 +107,23 @@ void inline MakeAct::update_list()
     routesFile -> beginGroup("Routes");
     routesFile -> beginWriteArray("GovernmentContract");
 
-    std::vector<int> routes;
+    std::vector<std::string> routes;
 
     for(int i = 0; i < ui -> routeList -> count(); ++i)
     {
-        routes.push_back(ui -> routeList -> item(i) -> text().toInt());
+        routes.push_back(ui -> routeList -> item(i) -> text().toStdString());
     }
 
-    std::sort(routes.begin(), routes.end(), std::less<int>());
+    std::sort(routes.begin(), routes.end(), std::less<std::string>());
 
     routes.erase(std::unique(routes.begin(), routes.end()), routes.end());
 
     ui -> routeList -> clear();
 
     for(auto routeNumber : routes)
-        ui -> routeList -> addItem(QString::number(routeNumber));
+    {
+        ui -> routeList -> addItem(QString::fromStdString(routeNumber).toUpper().replace(" ", ""));
+    }
 
     for(int i = 0; i < routes.size(); ++i)
     {
@@ -189,6 +178,7 @@ void MakeAct::start_make_report()
     std::string routes[ui -> routeList -> count()];
     for(int i = 0; i < ui -> routeList -> count(); ++i)
     {
+        qDebug() << routes[i];
         tableData.push_back(make_route_report(ui -> routeList -> item(i) -> text().toStdString()));
         routes[i] = ui -> routeList -> item(i) -> text().toStdString();
     }
@@ -201,104 +191,129 @@ void MakeAct::start_make_report()
 
 std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::string& route)
 {
-    std::ifstream inputJson("A:/Projects/dispglonass/python_scripts/data.json");
-    boost::json::value routesDataJson;
-    std::vector<std::vector<std::string>> reportTableModel;
+    try {
 
-    if(!inputJson.is_open())
-        std::cerr << "Error openning the file!" << std::endl;
-    else
-    {
-        inputJson >> routesDataJson;
-        int planRacesPerDay, factRacesPerDay;
-        QDate dateOfRaces = QDate(2024, 06, 1);
-        for(int i = 3; i < routesDataJson.as_object()[route].as_array().size(); ++i)
+        #ifdef __MINGW32__
+                std::ifstream inputJson("A:/Projects/dispglonass/python_scripts/data.json");
+        #endif
+        #ifdef __linux__
+                std::ifstream inputJson("data.json");
+        #endif
+
+        boost::json::value routesDataJson;
+        std::vector<std::vector<std::string>> reportTableModel;
+
+        if(!inputJson.is_open())
+            std::cerr << "Error openning the file!" << std::endl;
+        else
         {
-            if(routesDataJson.as_object()[route].as_array()[i].as_array().size() > 0)
+            inputJson >> routesDataJson;
+            int planRacesPerDay, factRacesPerDay;
+            QDate dateOfRaces = QDate(2024, 06, 1);
+            for(int i = 3; i < routesDataJson.as_object()[route].as_array().size(); ++i)
             {
-                if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
+                if(routesDataJson.as_object()[route].as_array()[i].as_array().size() > 0)
                 {
-                    std::vector<std::string> dayReport;
-                    try {
-                        planRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[1].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[4].as_string().c_str());
-                        factRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[2].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[5].as_string().c_str());
-
-                        dayReport.push_back(dateOfRaces.toString("dd.MM.yyyy").toStdString());
-                        dayReport.push_back(std::to_string(planRacesPerDay));
-                        dayReport.push_back(std::to_string(factRacesPerDay));
-
-                        int exploitationsReason = 0;
-                        int technicalReason = 0;
-                        int accidentReason = 0;
-                        int deviationReason = 0;
-                        int otherReason = 0;
-
-                        while(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
-                        {
-                            if(planRacesPerDay == factRacesPerDay)
-                                break;
+                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
+                    {
+                        std::vector<std::string> dayReport;
+                        try {
+                            qDebug() << i;
+                            if(routesDataJson.as_object()[route].as_array()[i].as_array().size() < 4)
+                            {
+                                planRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[1].as_string().c_str());
+                                factRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[2].as_string().c_str());
+                            }
                             else
                             {
-                                if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("Э"))
-                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
-                                        exploitationsReason++;
-                                    else
-                                        exploitationsReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
-                                else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("Т"))
-                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
-                                        technicalReason++;
-                                    else
-                                        technicalReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
-                                else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("ДТП"))
-                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
-                                        accidentReason++;
-                                    else
-                                        accidentReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
-                                else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[14].as_string().c_str()) == QString("Несоблюдение времени начала/окончания движения"))
-                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
-                                        deviationReason++;
-                                    else
-                                        deviationReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
-                                else
-                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
-                                        otherReason++;
-                                    else
-                                        otherReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
-
-                                ++i;
-
-                                if(routesDataJson.as_object()[route].as_array()[i].as_array().size() < 4)
-                                    break;
+                                planRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[1].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[4].as_string().c_str());
+                                factRacesPerDay = std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[2].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[5].as_string().c_str());
                             }
+
+                            dayReport.push_back(dateOfRaces.toString("dd.MM.yyyy").toStdString());
+                            dayReport.push_back(route);
+                            dayReport.push_back(std::to_string(planRacesPerDay));
+                            dayReport.push_back(std::to_string(factRacesPerDay));
+
+                            int exploitationsReason = 0;
+                            int technicalReason = 0;
+                            int accidentReason = 0;
+                            int deviationReason = 0;
+                            int otherReason = 0;
+
+                            while(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
+                            {
+                                if(planRacesPerDay == factRacesPerDay)
+                                    break;
+                                else
+                                {
+                                    if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("Э"))
+                                        if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            exploitationsReason++;
+                                        else
+                                            exploitationsReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                    else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("Т"))
+                                        if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            technicalReason++;
+                                        else
+                                            technicalReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                    else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[12].as_string().c_str()) == QString("ДТП"))
+                                        if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            accidentReason++;
+                                        else
+                                            accidentReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                    else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[14].as_string().c_str()) == QString("Несоблюдение времени начала/окончания движения"))
+                                        if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            deviationReason++;
+                                        else
+                                            deviationReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                    else
+                                        if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            otherReason++;
+                                        else
+                                            otherReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+
+                                    ++i;
+
+                                    if(routesDataJson.as_object()[route].as_array()[i].as_array().size() < 4)
+                                        break;
+                                }
+                            }
+
+                            --i;
+
+                            dayReport.push_back(std::to_string(exploitationsReason));
+                            dayReport.push_back(std::to_string(technicalReason));
+                            dayReport.push_back(std::to_string(accidentReason));
+                            dayReport.push_back(std::to_string(deviationReason));
+                            dayReport.push_back(std::to_string(otherReason));
+
+                        } catch(std::exception) {
+                            dayReport.push_back(dateOfRaces.toString("dd.MM.yyyy").toStdString());
+                            dayReport.push_back(route);
+                            dayReport.push_back("-");
+                            dayReport.push_back("-");
+                            dayReport.push_back("-");
+                            dayReport.push_back("-");
+                            dayReport.push_back("-");
+                            dayReport.push_back("-");
+                            dayReport.push_back("-");
                         }
 
-                        --i;
-
-                        dayReport.push_back(std::to_string(exploitationsReason));
-                        dayReport.push_back(std::to_string(technicalReason));
-                        dayReport.push_back(std::to_string(accidentReason));
-                        dayReport.push_back(std::to_string(deviationReason));
-                        dayReport.push_back(std::to_string(otherReason));
-
-                    } catch(std::exception) {
-                        dayReport.push_back("-");
-                        dayReport.push_back("-");
-                        dayReport.push_back("-");
-                        dayReport.push_back("-");
-                        dayReport.push_back("-");
-                        dayReport.push_back("-");
-                        dayReport.push_back("-");
-                        dayReport.push_back("-");
+                        reportTableModel.push_back(dayReport);
+                        dateOfRaces = dateOfRaces.addDays(1);
                     }
-
-                    reportTableModel.push_back(dayReport);
-                    dateOfRaces = dateOfRaces.addDays(1);
                 }
             }
         }
-    }
 
-    return reportTableModel;
+        return reportTableModel;
+
+    } catch (const std::ifstream::failure& e) {
+        QMessageBox::StandardButton resBtn = QMessageBox::question(this, "Ошибка!",
+                                                                       tr("Рейсы не скачаны!\nПожалуйста, скачайте рейсы и попробуйте снова."),
+                                                                       QMessageBox::Ok | QMessageBox::Cancel);
+    }
 }
 
 void MakeAct::exit()

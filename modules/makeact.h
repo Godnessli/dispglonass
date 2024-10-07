@@ -17,6 +17,7 @@
 #include <boost/json.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/algorithm/string.hpp>
 #include "xlnt/xlnt.hpp"
 
 namespace Ui {

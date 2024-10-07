@@ -64,22 +64,30 @@ std::string GetActs::name_of_spreadsheet(const std::string month)
 
 void GetActs::download_spreadsheet(const std::vector<std::string> *arrayOfRoutes)
 {
-    std::string run_script = "import sys\n"
-                             "sys.path.insert(1, 'A:/projects/dispglonass/python_scripts')\n"
-                             "sys.path.insert(1, 'A:/usr/Python312/Lib/site-packages')\n"
-                             "import main\n"
-                             "obj = main.ReportReader\n"
-                             "def run():\n"
-                             "  return obj.run([";
+    std::string run_script = "import sys\n";
+
+#ifdef __MINGW32__
+    run_script +=   "sys.path.insert(1, 'A:/projects/dispglonass/python_scripts')\n"
+                    "sys.path.insert(1, 'A:/usr/Python312/Lib/site-packages')\n";
+#endif
+#ifdef __linux__
+    run_script +=   "sys.path.insert(1, '/home/godnessli/projects/dispglonass/python_scripts')\n"
+                    "sys.path.insert(1, '/home/godnessli/.local/lib/python3.12/site-packages')\n";
+#endif
+
+    run_script +=   "import main\n"
+                    "obj = main.ReportReader\n"
+                    "def run():\n"
+                    "  return obj.run([";
 
     std::string routes;
 
     for(int i = 0; i < arrayOfRoutes -> size(); ++i)
     {
         if(i == arrayOfRoutes -> size() - 1)
-            routes += arrayOfRoutes -> at(i);
+            routes += "'" + arrayOfRoutes -> at(i) + "'";
         else
-            routes += arrayOfRoutes -> at(i) + ", ";
+            routes += "'" + arrayOfRoutes -> at(i) + "'" + ", ";
     }
 
     run_script += routes + "], '" + name_of_spreadsheet(today_month()) + "')";
