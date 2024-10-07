@@ -1,9 +1,13 @@
-import os.path
+from os import path, getcwd
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 import aiohttp
+from aiohttp.client_exceptions import ContentTypeError
 from excel_reader import ExcelReader
+from asyncio import sleep
+
+DIR_PATH = getcwd()
 
 
 class GoogleSheetsApiUser:
@@ -12,24 +16,29 @@ class GoogleSheetsApiUser:
 
     def __init__(self):
         self.token: str = self.get_token()
-        self.id_sheets: dict = ExcelReader('A:/Projects/dispglonass/python_scripts/routes.xlsx').get_data()
+        self.id_sheets: dict = ExcelReader(DIR_PATH + '/' + 'routes.xlsx').get_data()
 
     def get_token(self):
         """ Получет API токен."""
 
         creds = None
-        if os.path.exists('A:/Projects/dispglonass/python_scripts/token.json'):
-            creds = Credentials.from_authorized_user_file('A:/Projects/dispglonass/python_scripts/token.json', self.SCOPES)
+        if path.exists(DIR_PATH + '/' + 'token.json'):
+            creds = Credentials.from_authorized_user_file(DIR_PATH + '/' + 'token.json', self.SCOPES)
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file('A:/Projects/dispglonass/python_scripts/credentials.json', self.SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(DIR_PATH + '/' + 'credentials.json', self.SCOPES)
                 creds = flow.run_local_server(port=0)
-            with open('A:/Projects/dispglonass/python_scripts/token.json', 'w') as token:
+            with open(DIR_PATH + '/' + 'token.json', 'w') as token:
                 token.write(creds.to_json())
 
         return creds.token
+
+    async def get(self, url: str):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers={'Authorization': 'Bearer ' + self.token}) as response:
+                return await response.json()
 
     async def get_values(self, spreadsheet_id, ranges: str):
         """Делает get-запрос и получает двумерный список значений ячеек таблицы.
@@ -40,8 +49,14 @@ class GoogleSheetsApiUser:
         """
 
         req_url = self.URL + f'/{spreadsheet_id}/values/{ranges}'
-        async with aiohttp.ClientSession() as session:
-            async with session.get(req_url, headers={'Authorization': 'Bearer ' + self.token}) as response:
-                return await response.json()
+
+        try:
+            return await self.get(req_url)
+        except ContentTypeError as err:
+            if err.code >= 500:
+                await sleep(0.5)
+                return await self.get(req_url)
+            else:
+                raise err
 
 

@@ -1,8 +1,9 @@
 import asyncio
-from google_api_user import GoogleSheetsApiUser
+from google_api_user import GoogleSheetsApiUser, DIR_PATH
 import json
 from excel_reader import ExcelReader
 from time import time
+
 
 class ReportReader:
 
@@ -15,7 +16,7 @@ class ReportReader:
                 period(str): нужный период форамата <Месяц> <Последние две цифры года>
 
         """
-        id_sheets, data = ExcelReader('A:/Projects/dispglonass/python_scripts/routes.xlsx').get_data(), dict()
+        id_sheets, data = ExcelReader(DIR_PATH + '/' + 'routes.xlsx').get_data(), dict()
         api_user = GoogleSheetsApiUser()
         tasks = [api_user.get_values(id_sheets[route_numb], period) for route_numb in lst_routes]
         lst_reports = await asyncio.gather(*tasks)
@@ -24,7 +25,7 @@ class ReportReader:
             route_numb = lst_routes[i]
             data[route_numb] = report['values']
 
-        with open('A:/Projects/dispglonass/python_scripts/data.json', 'w', encoding='utf-8') as f:
+        with open(DIR_PATH + '/' + 'data.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     @classmethod
@@ -33,7 +34,6 @@ class ReportReader:
         asyncio.run(cls.get_org_reports(routes, month))
 
         return round(time() - start, 1)
-
 
 
 
