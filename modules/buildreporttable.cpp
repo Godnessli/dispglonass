@@ -6,7 +6,7 @@ BuildReportTable::BuildReportTable(const std::vector<std::vector<std::vector<std
     xlnt::worksheet inputWorkSheet = inputWorkBook.active_sheet();
     inputWorkSheet.title("Акты по Маршрутам");
 
-    int count_rows = QDate(2024, 06, 1).daysInMonth();
+    int count_rows = QDate(2024, 9, 1).daysInMonth();
 
     inputWorkSheet.cell(xlnt::cell_reference(1, 1)).value("Дата");
     inputWorkSheet.cell(xlnt::cell_reference(2, 1)).value("Маршрут");
@@ -22,14 +22,31 @@ BuildReportTable::BuildReportTable(const std::vector<std::vector<std::vector<std
 
     for(int route = 0; route < routesData.size(); ++route)
     {
-        for(int row = (count_rows * route + 2); row <= (count_rows * (route + 1) + 1); ++row)
+        for(int row = (routesData[route].size() * route + 2); row <= (routesData[route].size() * (route + 1) + 1); ++row)
         {
-
+            qDebug() << "route = " << routes_names[route] << "\t route id = " << route;
+            qDebug() << "row = " << row - (count_rows * route + 2);
             for(int col = 1; col <= routesData[route][0].size(); ++col)
             {
                 qDebug() << "row/col in table xlsx " << row << col;
                 inputWorkSheet.cell(xlnt::cell_reference(col, row)).value(routesData[route][row - (count_rows * route + 2)][col - 1]);
                 inputWorkSheet.cell(col, row).alignment(xlnt::alignment().horizontal(xlnt::horizontal_alignment::center));
+
+                if(col > 6)
+                {
+                    try {
+                        if(std::stoi(inputWorkSheet.cell(col, row).to_string()) > 10)
+                        {
+                            inputWorkSheet.cell(col, row).fill(xlnt::fill::solid(xlnt::rgb_color("b50808")));
+                            inputWorkSheet.cell(col, row).font(xlnt::font().color(xlnt::color::white()));
+                            inputWorkSheet.cell(col, row).font(xlnt::font().name("Calibri"));
+                        }
+                        else if(std::stoi(inputWorkSheet.cell(col, row).to_string()) > 5)
+                            inputWorkSheet.cell(col, row).fill(xlnt::fill::solid(xlnt::rgb_color("f1b64e")));
+                    } catch (std::exception) {
+                        continue;
+                    }
+                }
             }
         }
     }

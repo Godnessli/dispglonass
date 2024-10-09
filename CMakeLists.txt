@@ -55,6 +55,8 @@ set(PROJECT_SOURCES
         modules/getacts.cpp
         modules/buildreporttable.h
         modules/buildreporttable.cpp
+        modules/readtransportworktable.h
+        modules/readtransportworktable.cpp
         python_scripts/excel_reader.py
         python_scripts/google_api_user.py
         python_scripts/main.py

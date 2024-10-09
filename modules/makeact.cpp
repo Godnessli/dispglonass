@@ -209,7 +209,7 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
         {
             inputJson >> routesDataJson;
             int planRacesPerDay, factRacesPerDay;
-            QDate dateOfRaces = QDate(2024, 6, 1);
+            QDate dateOfRaces = QDate(2024, 9, 1);
             if(routesDataJson.as_object()[route].as_array()[routesDataJson.as_object()[route].as_array().size() / 2].as_array().size() > 0)
             {
                 for(int i = 3; i < routesDataJson.as_object()[route].as_array().size() - 1; ++i)
@@ -217,7 +217,8 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                     qDebug() << i;
                     if(routesDataJson.as_object()[route].as_array()[i].as_array().size() > 0)
                     {
-                        if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
+                        if((QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy")) ||
+                            (QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()).remove(5, 5) == dateOfRaces.toString("dd.MM")))
                         {
                             qDebug() << "check 2";
                             std::vector<std::string> dayReport;
@@ -254,7 +255,8 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                                 int glonassError = 0;
                                 int otherReason = 0;
 
-                                while(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy"))
+                                while(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy") ||
+                                      (QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()).remove(5, 5) == dateOfRaces.toString("dd.MM")))
                                 {
                                     if(routesDataJson.as_object()[route].as_array()[i].as_array().size() > 12)
                                     {
@@ -262,10 +264,10 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                                         {
                                             if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 exploitationsReason++;
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 exploitationsReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str());
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
-                                                exploitationsReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
+                                            else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && !QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
+                                                exploitationsReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str());
                                             else
                                                 exploitationsReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
                                         }
@@ -273,9 +275,9 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                                         {
                                             if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 technicalReason++;
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 technicalReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str());
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
+                                            else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && !QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 technicalReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
                                             else
                                                 technicalReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
@@ -284,9 +286,9 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                                         {
                                             if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 accidentReason++;
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 accidentReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str());
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
+                                            else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && !QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 accidentReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
                                             else
                                                 accidentReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
@@ -297,9 +299,9 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                                         {
                                             if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 deviationReason++;
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 deviationReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str());
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
+                                            else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && !QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 deviationReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
                                             else
                                                 deviationReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
@@ -309,9 +311,9 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                                         {
                                             if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 deviationTimeReason++;
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 deviationTimeReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str());
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
+                                            else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && !QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 deviationTimeReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
                                             else
                                                 deviationTimeReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
@@ -320,9 +322,9 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                                         {
                                             if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 glonassError++;
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 glonassError += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str());
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
+                                            else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && !QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 glonassError += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
                                             else
                                                 glonassError += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
@@ -331,9 +333,9 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
                                         {
                                             if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 otherReason++;
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty())
+                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 otherReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str());
-                                            else if(!QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
+                                            else if(QString(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()).isEmpty() && !QString(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str()).isEmpty())
                                                 otherReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
                                             else
                                                 otherReason += std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[15].as_string().c_str()) + std::stoi(routesDataJson.as_object()[route].as_array()[i].as_array()[16].as_string().c_str());
