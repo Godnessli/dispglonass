@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <thread>
 #include <QDebug>
 #include <QLineEdit>
 #include <QSettings>

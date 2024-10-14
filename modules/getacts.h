@@ -8,6 +8,7 @@
 #include <thread>
 #include <boost/python.hpp>
 #include <QMessageBox>
+#include <QCoreApplication>
 
 class GetActs
 {

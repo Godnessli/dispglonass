@@ -100,6 +100,11 @@ target_link_libraries(dispglonass PRIVATE
     ${Boost_LIBRARIES}
     ${PYTHON_LIBRARIES})
 
+add_custom_command(TARGET dispglonass
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   "${CMAKE_SOURCE_DIR}/python_scripts"
+                   "${CMAKE_BINARY_DIR}/python_scripts")
+
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.

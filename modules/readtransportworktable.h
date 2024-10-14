@@ -13,7 +13,7 @@ public:
     ReadTransportWorkTable();
 
     std::string                             get_filepath_from_user();
-    std::vector<std::vector<std::string>>   table_data(const std::string &, const std::vector<std::string>&);
+    std::vector<std::vector<std::string>>   table_data(const std::string &, const std::vector<std::string> &);
 
 };
 

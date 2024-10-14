@@ -16,7 +16,7 @@ class ReportReader:
                 period(str): нужный период форамата <Месяц> <Последние две цифры года>
 
         """
-        id_sheets, data = ExcelReader(DIR_PATH + '/' + 'routes.xlsx').get_data(), dict()
+        id_sheets, data = ExcelReader(DIR_PATH + '/python_scripts/' + 'routes.xlsx').get_data(), dict()
         api_user = GoogleSheetsApiUser()
         tasks = [api_user.get_values(id_sheets[route_numb], period) for route_numb in lst_routes]
         lst_reports = await asyncio.gather(*tasks)

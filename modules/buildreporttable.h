@@ -9,7 +9,7 @@
 class BuildReportTable final : public MakeAct
 {
 public:
-    BuildReportTable(const std::vector<std::vector<std::vector<std::string>>>&, const std::string[]);
+    BuildReportTable(const std::vector<std::vector<std::vector<std::string>>>&, const std::vector<std::vector<std::string>>&);
 };
 
 #endif // BUILDREPORTTABLE_H

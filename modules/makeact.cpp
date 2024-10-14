@@ -2,6 +2,7 @@
 #include "ui_makeact.h"
 #include "getacts.h"
 #include "buildreporttable.h"
+#include "readtransportworktable.h"
 
 MakeAct::MakeAct(QWidget *parent) :
     QDialog(parent),
@@ -154,39 +155,36 @@ void MakeAct::download_act()
     ga = nullptr;
 }
 
-boost::json::value read_json(std::istream& is, boost::system::error_code& ec)
-{
-    boost::json::stream_parser p;
-    std::string line;
-
-    while(std::getline(is, line))
-    {
-        p.write(line, ec);
-        if(ec)
-            return nullptr;
-    }
-
-    p.finish(ec);
-    if(ec)
-        return nullptr;
-    return p.release();
-}
-
 void MakeAct::start_make_report()
 {
-    std::vector<std::vector<std::vector<std::string>>> tableData;
-    std::string routes[ui -> routeList -> count()];
-    for(int i = 0; i < ui -> routeList -> count(); ++i)
-    {
-        tableData.push_back(make_route_report(ui -> routeList -> item(i) -> text().toStdString()));
-        routes[i] = ui -> routeList -> item(i) -> text().toStdString();
-        qDebug() << routes[i];
-    }
+    ReadTransportWorkTable *rtw = new ReadTransportWorkTable;
+    std::string filepath = rtw -> get_filepath_from_user();
 
+    std::thread thread1([&]{
+        std::vector<std::vector<std::vector<std::string>>> tableData;
+        std::vector<std::string> routeNums;
 
-    BuildReportTable *brt = new BuildReportTable(tableData, routes);
-    delete brt;
-    brt = nullptr;
+        for(int i = 0; i < ui -> routeList -> count(); ++i)
+            routeNums.push_back(ui -> routeList -> item(i) -> text().toStdString());
+
+        std::vector<std::vector<std::string>> transportWork = rtw -> table_data(filepath, routeNums);
+        if(filepath.empty())
+            std::cerr << "filepath is empty!" << std::endl;
+        else
+        {
+            for(int i = 0; i < ui -> routeList -> count(); ++i)
+                tableData.push_back(make_route_report(ui -> routeList -> item(i) -> text().toStdString()));
+
+            BuildReportTable *brt = new BuildReportTable(tableData, transportWork);
+            delete brt;
+            brt = nullptr;
+        }
+
+        delete rtw;
+        rtw = nullptr;
+    });
+
+    thread1.join();
 }
 
 std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::string& route)
@@ -194,7 +192,7 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
     try {
 
         #ifdef __MINGW32__
-            std::ifstream inputJson("data.json");
+            std::ifstream inputJson("python_scripts/data.json");
         #endif
         #ifdef __linux__
             std::ifstream inputJson("data.json");
@@ -209,18 +207,16 @@ std::vector<std::vector<std::string>> MakeAct::make_route_report(const std::stri
         {
             inputJson >> routesDataJson;
             int planRacesPerDay, factRacesPerDay;
-            QDate dateOfRaces = QDate(2024, 9, 1);
+            QDate dateOfRaces = QDate(QDate::currentDate().year(), QDate::currentDate().month(), 1);
             if(routesDataJson.as_object()[route].as_array()[routesDataJson.as_object()[route].as_array().size() / 2].as_array().size() > 0)
             {
                 for(int i = 3; i < routesDataJson.as_object()[route].as_array().size() - 1; ++i)
                 {
-                    qDebug() << i;
                     if(routesDataJson.as_object()[route].as_array()[i].as_array().size() > 0)
                     {
                         if((QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()) == dateOfRaces.toString("dd.MM.yyyy")) ||
                             (QString(routesDataJson.as_object()[route].as_array()[i].as_array()[0].as_string().c_str()).remove(5, 5) == dateOfRaces.toString("dd.MM")))
                         {
-                            qDebug() << "check 2";
                             std::vector<std::string> dayReport;
                             try {
                                 if(routesDataJson.as_object()[route].as_array()[i].as_array().size() < 4)

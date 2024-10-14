@@ -16,7 +16,7 @@ std::string ReadTransportWorkTable::get_filepath_from_user()
     return filepath;
 }
 
-std::vector<std::vector<std::string>> ReadTransportWorkTable::table_data(const std::string &path, const std::vector<std::string>& routesList)
+std::vector<std::vector<std::string>> ReadTransportWorkTable::table_data(const std::string &path, const std::vector<std::string> &routesVector)
 {
     std::vector<std::vector<std::string>> tableData;
     xlnt::workbook transportWorkBook;
@@ -24,11 +24,26 @@ std::vector<std::vector<std::string>> ReadTransportWorkTable::table_data(const s
 
     xlnt::worksheet transportWorkSheet = transportWorkBook.active_sheet();
 
-    const unsigned dateCol          = 0;
-    const unsigned routeCol         = 6;
-    const unsigned planCol          = 10;
-    const unsigned factCol          = 11;
-    const unsigned unexutedRacesCol = 13;
+    unsigned dateCol          = 0;
+    unsigned routeCol         = 0;
+    unsigned planCol          = 0;
+    unsigned factCol          = 0;
+    unsigned unexutedRacesCol = 0;
+
+    for(auto col : transportWorkSheet.rows(false)[0])
+    {
+        if(col.to_string() == "Дата выпуска")
+            dateCol = col.column().index - 1;
+        else if(col.to_string() == "№ Маршрута договор")
+            routeCol = col.column().index - 1;
+        else if(col.to_string() == "План рейсов")
+            planCol = col.column().index - 1;
+        else if(col.to_string() == "Факт рейсов")
+            factCol = col.column().index - 1;
+        else if(col.to_string() == "Сорванные рейсы")
+            unexutedRacesCol = col.column().index - 1;
+    }
+
     int rowNum = 0;
 
     for(auto row : transportWorkSheet.rows(false))
@@ -36,22 +51,18 @@ std::vector<std::vector<std::string>> ReadTransportWorkTable::table_data(const s
         rowNum++;
         std::vector<std::string> transportWorkData;
 
-        for(int i = 0; i < routesList.size(); ++i)
+        for(int i = 0; i < routesVector.size(); ++i)
         {
-            if(row[routeCol].to_string() == routesList[i])
+            if(row[routeCol].to_string() == routesVector[i])
             {
                 std::string date = QDate(1900, 1, 1).addDays(std::stoi(row[dateCol].to_string()) - 2).toString("dd.MM.yyyy").toStdString();
-                std::cout << date << "\t";
-                std::cout << row[routeCol].to_string() << "\t";
-                std::cout << row[planCol].to_string() << "\t";
-                std::cout << row[factCol].to_string() << "\t";
-                std::cout << row[unexutedRacesCol].to_string() << std::endl;
 
                 transportWorkData.push_back(date);
                 transportWorkData.push_back(row[routeCol].to_string());
                 transportWorkData.push_back(row[planCol].to_string() );
                 transportWorkData.push_back(row[factCol].to_string());
                 transportWorkData.push_back(row[unexutedRacesCol].to_string());
+
                 tableData.push_back(transportWorkData);
             }
         }

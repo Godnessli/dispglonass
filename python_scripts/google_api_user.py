@@ -16,21 +16,20 @@ class GoogleSheetsApiUser:
 
     def __init__(self):
         self.token: str = self.get_token()
-        self.id_sheets: dict = ExcelReader(DIR_PATH + '/' + 'routes.xlsx').get_data()
 
     def get_token(self):
         """ Получет API токен."""
 
         creds = None
-        if path.exists(DIR_PATH + '/' + 'token.json'):
-            creds = Credentials.from_authorized_user_file(DIR_PATH + '/' + 'token.json', self.SCOPES)
+        if path.exists(DIR_PATH + '/python_scripts/' + 'token.json'):
+            creds = Credentials.from_authorized_user_file(DIR_PATH + '/python_scripts/' + 'token.json', self.SCOPES)
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(DIR_PATH + '/' + 'credentials.json', self.SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(DIR_PATH + '/python_scripts/' + 'credentials.json', self.SCOPES)
                 creds = flow.run_local_server(port=0)
-            with open(DIR_PATH + '/' + 'token.json', 'w') as token:
+            with open(DIR_PATH + '/python_scripts/' + 'token.json', 'w') as token:
                 token.write(creds.to_json())
 
         return creds.token

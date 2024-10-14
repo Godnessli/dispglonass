@@ -11,6 +11,10 @@ GetActs::~GetActs()
 std::string inline GetActs::today_month()
 {
     QDate today = QDate::currentDate();
+    if(today.day() < 20 && today.month() != 1)
+        today = QDate(today.year(), today.month() - 1, today.day());
+    else if(today.month() == 1)
+        today = QDate(today.year() - 1, 12, today.day());
     std::string month;
 
     switch (today.month()) {
@@ -42,7 +46,7 @@ std::string inline GetActs::today_month()
         month = "Сентябрь";
         break;
     case 10:
-        month = "Сентябрь"; // Важно!!! Поменять обратно на Октябрь, сделано только для теста!
+        month = "Октябрь";
         break;
     case 11:
         month = "Ноябрь";
@@ -72,7 +76,7 @@ void GetActs::download_spreadsheet(const std::vector<std::string> *arrayOfRoutes
     #endif
 
     #ifdef __linux__
-        run_script +=   "sys.path.insert(1, '/home/godnessli/projects/dispglonass/python_scripts')\n"
+        run_script +=   "sys.path.insert(1, '" + QCoreApplication::applicationDirPath().toStdString() + "/python_scripts')\n"
                         "sys.path.insert(1, '/home/godnessli/.local/lib/python3.12/site-packages')\n";
     #endif
 
